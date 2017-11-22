@@ -19,12 +19,8 @@ function start_showcqtbar(width, height, bar_h) {
     var audio_data_l = showcqtbar.get_input_array(0);
     var audio_data_r = showcqtbar.get_input_array(1);
     var line_buffer_tmp = null, line_buffer = null;
-    try {
-        line_buffer = new ImageData(showcqtbar.get_output_array(), width, 1);
-    } catch (e) {
-        line_buffer_tmp = showcqtbar.get_output_array();
-        line_buffer = canvas.createImageData(width, 1);
-    }
+    var line_buffer = showcqtbar.get_output_array();
+    var img_buffer = canvas.createImageData(width, height);
     var render_time = 0.0;
     var calc_time = 0.0;
     var time_count = 0;
@@ -39,11 +35,10 @@ function start_showcqtbar(width, height, bar_h) {
         var middle = performance.now();
         for (var y = 0; y < height/2; y++) {
             showcqtbar.render_line(y);
-            if (line_buffer_tmp)
-                line_buffer.data.set(line_buffer_tmp);
-            canvas.putImageData(line_buffer, 0, y);
-            canvas.putImageData(line_buffer, 0, height-1-y);
+            img_buffer.data.set(line_buffer, 4*width*y);
+            img_buffer.data.set(line_buffer, 4*width*(height-1-y));
         }
+        canvas.putImageData(img_buffer, 0, 0);
         var end = performance.now();
         calc_time += middle - start;
         render_time += end - middle;
