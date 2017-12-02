@@ -64,3 +64,29 @@ function load_audio() {
     var file = document.getElementById("my-file").files[0];
     audio.src = url.createObjectURL(file);
 }
+
+window.onload = function() {
+    var qstring = window.location.search;
+    var w = 0, h = 0, axis_h = 0, bar_h = 0;
+
+    if (qstring == "?s=640x240")
+        w = 640;
+    else if (qstring == "?s=960x360")
+        w = 960;
+    else if (qstring == "?s=1280x480")
+        w = 1280;
+    else
+        window.location.replace("index.html?s=960x360");
+
+    h = (w * 3 / 8)|0;
+    axis_h = (w / 40)|0;
+    bar_h = ((h - axis_h)/2)|0;
+    document.getElementById("my-canvas").width = w;
+    document.getElementById("my-canvas").height = h;
+    document.getElementById("my-div-canvas").style.height = h + "px";
+    document.getElementById("my-div-img").style.top = bar_h + "px";
+    document.getElementById("my-img").width = w;
+    document.getElementById("my-img").height = axis_h;
+    document.getElementById("my-audio").style.width = w + "px";
+    start_showcqtbar(w, h, bar_h);
+}

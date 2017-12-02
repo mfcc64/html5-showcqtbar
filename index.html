@@ -2,9 +2,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta charset="UTF-8"/>
-        <title>HOME</title>
+        <title>ShowCQTBar Audio Spectrum Visualization</title>
+        <script type="text/javascript" src="showcqtbar.js"></script>
+        <script type="text/javascript" src="common.js"></script>
     </head>
-    <body onload="window.location.replace('640x240.html');">
-        <h1>WELCOME</h1>
+    <body>
+        <div style="position:relative; height:240px;" id="my-div-canvas">
+            <div style="position:absolute; top:0px; left:0px;"><canvas id="my-canvas" width="640" height="240"></canvas></div>
+            <div style="position:absolute; top:112px; left:0px;" id="my-div-img"><img id="my-img" src="axis-1920x48.png" width="640" height="16"/></div> 
+        </div>
+        <div style="position:relative;"><audio autoplay="autoplay" controls="controls" id="my-audio" style="width:640px;"></audio></div>
+        <div>SELECT AUDIO: <input type="file" onchange="load_audio()" id="my-file"/></div>
+        <p>Resolutions:
+            [<a href="index.html?s=1280x480">1280x480</a>]
+            [<a href="index.html?s=960x360">960x360</a>]
+            [<a href="index.html?s=640x240">640x240</a>].</p>
+        <p id="my-perf"></p>
     </body>
 </html>
