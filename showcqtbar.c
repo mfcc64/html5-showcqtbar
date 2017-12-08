@@ -144,13 +144,6 @@ static void fft_calc(Complex *v, int n)
     }
 }
 
-static double b_weighting(double f)
-{
-    double ret = 12200.0*12200.0 * (f*f*f);
-    ret /= (f*f + 20.6*20.6) * (f*f + 12200.0*12200.0) * sqrt(f*f + 158.5*158.5);
-    return ret;
-}
-
 int init(int rate, int width, int height, float bar_v, float sono_v, int super)
 {
     if (height <= 0 || height > MAX_HEIGHT || width <= 0 || width > MAX_WIDTH)
@@ -212,7 +205,7 @@ int init(int rate, int width, int height, float bar_v, float sono_v, int super)
             int sign = (x & 1) ? (-1) : 1;
             double y = 2.0 * M_PI * (x - center) * (1.0 / flen);
             double w = 0.355768 + 0.487396 * cos(y) + 0.144232 * cos(2*y) + 0.012604 * cos(3*y);
-            w *= sign * (1.0/cqt.fft_size) * b_weighting(freq);
+            w *= sign * (1.0/cqt.fft_size);
             cqt.kernel[idx+2+x-start].f = w;
         }
         idx += len+2;
