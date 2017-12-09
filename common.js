@@ -14,7 +14,11 @@ function start_showcqtbar(width, height, bar_h) {
     var iir_r = audio_ctx.createBiquadFilter();
     var source = audio_ctx.createMediaElementSource(document.getElementById("my-audio"));
     var canvas = document.getElementById("my-canvas").getContext("2d", {alpha:false});
-    var showcqtbar = new ShowCQTBar(audio_ctx.sampleRate, width, bar_h, 9, 17, 1);
+    var bar_knob = document.getElementById("my-bar-knob");
+    var brightness_knob = document.getElementById("my-brightness-knob");
+    var showcqtbar = new ShowCQTBar(audio_ctx.sampleRate, width, bar_h,
+                                    Math.pow(10, bar_knob.value/20),
+                                    Math.pow(10, brightness_knob.value/20), 1);
     var bass_knob = document.getElementById("my-bass-knob");
     analyser_l.fftSize = showcqtbar.fft_size;
     analyser_r.fftSize = showcqtbar.fft_size;
@@ -53,6 +57,13 @@ function start_showcqtbar(width, height, bar_h) {
         iir_l.gain.value = bass_knob.value;
         iir_r.gain.value = bass_knob.value;
     }
+
+    function change_volume() {
+        showcqtbar.set_volume(Math.pow(10, bar_knob.value/20),
+                              Math.pow(10, brightness_knob.value/20));
+    }
+    bar_knob.onchange = change_volume;
+    brightness_knob.onchange = change_volume;
 
     function draw() {
         requestAnimationFrame(draw);

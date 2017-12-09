@@ -26,6 +26,8 @@
 #define MAX_WIDTH 1920
 #define MAX_HEIGHT 1080
 #define MAX_KERNEL_SIZE 200000
+#define MIN_VOL 1.0f
+#define MAX_VOL 100.0f
 
 typedef struct Complex {
     float re, im;
@@ -152,12 +154,8 @@ int init(int rate, int width, int height, float bar_v, float sono_v, int super)
     cqt.width = width;
     cqt.height = height;
 
-    if (bar_v > 0.1f && bar_v < 100.0f && sono_v > 0.1f && sono_v < 100.0f) {
-        cqt.sono_v = sono_v;
-        cqt.bar_v = bar_v;
-    } else {
-        return 0;
-    }
+    cqt.bar_v = (bar_v > MAX_VOL) ? MAX_VOL : (bar_v > MIN_VOL) ? bar_v : MIN_VOL;
+    cqt.sono_v = (sono_v > MAX_VOL) ? MAX_VOL : (sono_v > MIN_VOL) ? sono_v : MIN_VOL;
 
     if (rate < 8000 || rate > 100000)
         return 0;
@@ -293,4 +291,10 @@ void render_line(int y)
         for (int x = 0; x < cqt.width; x++)
             cqt.output[x] = (Color){cqt.color_buf[x].r+0.5f, cqt.color_buf[x].g+0.5f, cqt.color_buf[x].b+0.5f, 255};
     }
+}
+
+void set_volume(float bar_v, float sono_v)
+{
+    cqt.bar_v = (bar_v > MAX_VOL) ? MAX_VOL : (bar_v > MIN_VOL) ? bar_v : MIN_VOL;
+    cqt.sono_v = (sono_v > MAX_VOL) ? MAX_VOL : (sono_v > MIN_VOL) ? sono_v : MIN_VOL;
 }

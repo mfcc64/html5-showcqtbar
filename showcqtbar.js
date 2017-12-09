@@ -40,6 +40,8 @@ function ShowCQTBar(rate, width, height, bar_v, sono_v, supersampling) {
     this.calc = function() { this.asm._calc(); }
     /* render showcqtbar at line y to output_array */
     this.render_line = function(y) { this.asm._render_line(y); }
+    /* set volume at runtime */
+    this.set_volume = function(bar_v, sono_v) { this.asm._set_volume(bar_v, sono_v); }
 }
 
 
@@ -231,12 +233,14 @@ function _init(i1, i3, i4, f5, f6, i10) {
  }
  HEAP32[248671] = i3;
  HEAP32[248672] = i4;
- if (!(f6 < Math_fround(100.0) & (f5 > Math_fround(.100000001) & f5 < Math_fround(100.0) & f6 > Math_fround(.100000001)))) {
-  i18 = 0;
-  return i18 | 0;
- }
- HEAPF32[248676] = f6;
- HEAPF32[248677] = f5;
+ i18 = f5 > Math_fround(100.0);
+ i12 = f5 > Math_fround(1.0);
+ f5 = i12 ? f5 : Math_fround(1.0);
+ HEAPF32[248677] = i18 ? Math_fround(100.0) : f5;
+ i18 = f6 > Math_fround(100.0);
+ i12 = f6 > Math_fround(1.0);
+ f6 = i12 ? f6 : Math_fround(1.0);
+ HEAPF32[248676] = i18 ? Math_fround(100.0) : f6;
  if ((i1 + -8e3 | 0) >>> 0 > 92e3) {
   i18 = 0;
   return i18 | 0;
@@ -315,7 +319,7 @@ function _init(i1, i3, i4, f5, f6, i10) {
  while (1) {
   d2 = +Math_exp(+((+(i11 | 0) + .5) * 6.931471805599452 * d17 + 2.9964935469158838));
   if (d2 >= d13) {
-   i3 = 20;
+   i3 = 19;
    break;
   }
   d8 = d2 * .33;
@@ -328,7 +332,7 @@ function _init(i1, i3, i4, f5, f6, i10) {
   i4 = i10 + 1 | 0;
   if ((i18 + 1e3 + i4 | 0) > 2e5) {
    i1 = 0;
-   i3 = 26;
+   i3 = 25;
    break;
   }
   HEAP32[994712 + (i18 << 2) >> 2] = i4;
@@ -344,15 +348,15 @@ function _init(i1, i3, i4, f5, f6, i10) {
   }
   i11 = i11 + 1 | 0;
   if ((i11 | 0) >= (i12 | 0)) {
-   i3 = 26;
+   i3 = 25;
    break;
   } else i18 = i18 + 3 + i10 | 0;
  }
- if ((i3 | 0) == 20) {
+ if ((i3 | 0) == 19) {
   HEAP32[994712 + (i18 << 2) >> 2] = 0;
   i18 = i1;
   return i18 | 0;
- } else if ((i3 | 0) == 26) return i1 | 0;
+ } else if ((i3 | 0) == 25) return i1 | 0;
  return 0;
 }
 
@@ -464,6 +468,21 @@ function _render_line(i1) {
  return;
 }
 
+function _set_volume(f1, f2) {
+ f1 = Math_fround(f1);
+ f2 = Math_fround(f2);
+ var i3 = 0, i4 = 0;
+ i3 = f1 > Math_fround(100.0);
+ i4 = f1 > Math_fround(1.0);
+ f1 = i4 ? f1 : Math_fround(1.0);
+ HEAPF32[248677] = i3 ? Math_fround(100.0) : f1;
+ i3 = f2 > Math_fround(100.0);
+ i4 = f2 > Math_fround(1.0);
+ f2 = i4 ? f2 : Math_fround(1.0);
+ HEAPF32[248676] = i3 ? Math_fround(100.0) : f2;
+ return;
+}
+
 function _get_input_array(i1) {
  i1 = i1 | 0;
  return 380 + (((i1 | 0) != 0 & 1) << 17) | 0;
@@ -474,5 +493,5 @@ function _get_output_array() {
 }
 
 // EMSCRIPTEN_END_FUNCS
-  return { _render_line: _render_line, _init: _init, _get_input_array: _get_input_array, _calc: _calc, _get_output_array: _get_output_array };
+  return { _render_line: _render_line, _init: _init, _get_input_array: _get_input_array, _calc: _calc, _get_output_array: _get_output_array, _set_volume: _set_volume };
 }
