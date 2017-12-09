@@ -15,6 +15,7 @@ function start_showcqtbar(width, height, bar_h) {
     var source = audio_ctx.createMediaElementSource(document.getElementById("my-audio"));
     var canvas = document.getElementById("my-canvas").getContext("2d", {alpha:false});
     var showcqtbar = new ShowCQTBar(audio_ctx.sampleRate, width, bar_h, 9, 17, 1);
+    var bass_knob = document.getElementById("my-bass-knob");
     analyser_l.fftSize = showcqtbar.fft_size;
     analyser_r.fftSize = showcqtbar.fft_size;
     source.connect(panner);
@@ -28,11 +29,11 @@ function start_showcqtbar(width, height, bar_h) {
     iir_l.type = "peaking";
     iir_l.frequency.value = 10;
     iir_l.Q.value = 0.33;
-    iir_l.gain.value = -40;
+    iir_l.gain.value = bass_knob.value;
     iir_r.type = "peaking";
     iir_r.frequency.value = 10;
     iir_r.Q.value = 0.33;
-    iir_r.gain.value = -40;
+    iir_r.gain.value = bass_knob.value;
     splitter_l.connect(iir_l, 1);
     splitter_r.connect(iir_r, 1);
     iir_l.connect(analyser_l);
@@ -47,6 +48,11 @@ function start_showcqtbar(width, height, bar_h) {
     var calc_time = 0.0;
     var time_count = 0;
     var last_time = performance.now();
+
+    bass_knob.onchange = function() {
+        iir_l.gain.value = bass_knob.value;
+        iir_r.gain.value = bass_knob.value;
+    }
 
     function draw() {
         requestAnimationFrame(draw);
