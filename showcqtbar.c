@@ -52,9 +52,10 @@ typedef struct ShowCQT {
     Color       output[MAX_WIDTH];
 
     /* tables */
-    Complex     exp_tbl[MAX_FFT_SIZE];
-    int         perm_tbl[MAX_FFT_SIZE/2];
-    float       attack_tbl[MAX_FFT_SIZE/2];
+    Complex     exp_tbl[MAX_FFT_SIZE+MAX_FFT_SIZE/4];
+    int16_t     perm_tbl[MAX_FFT_SIZE/4];
+    float       attack_tbl[MAX_FFT_SIZE/8];
+    uint8_t     padding[1024];
 
     /* buffers */
     Complex     fft_buf[MAX_FFT_SIZE];
@@ -74,7 +75,7 @@ typedef struct ShowCQT {
     Kernel      kernel[MAX_KERNEL_SIZE];
 } ShowCQT;
 
-static ShowCQT cqt;
+static __attribute__((__aligned__(128))) ShowCQT cqt;
 
 float *get_input_array(int index)
 {
@@ -110,39 +111,101 @@ static void gen_perm_tbl(int bits)
 
 static void gen_exp_tbl(int n)
 {
-    for (int k = 1; k < n; k *= 2) {
-        double mul = M_PI / k;
-        for (int x = 0; x < k; x++)
+    double mul;
+    for (int k = 2; k < n; k *= 2) {
+        mul = 2.0 * M_PI / k;
+        for (int x = 0; x < k/2; x++)
             cqt.exp_tbl[k+x] = (Complex){ cos(mul*x), -sin(mul*x) };
+        mul = 3.0 * M_PI / k;
+        for (int x = 0; x < k/2; x++)
+            cqt.exp_tbl[k+k/2+x] = (Complex){ cos(mul*x), -sin(mul*x) };
     }
+    mul = 2.0 * M_PI / n;
+    for (int x = 0; x < n/4; x++)
+        cqt.exp_tbl[n+x] = (Complex){ cos(mul*x), -sin(mul*x) };
 }
 
 #define C_ADD(a, b) (Complex){ (a).re + (b).re, (a).im + (b).im }
 #define C_SUB(a, b) (Complex){ (a).re - (b).re, (a).im - (b).im }
 #define C_MUL(a, b) (Complex){ (a).re * (b).re - (a).im * (b).im, (a).re * (b).im + (a).im * (b).re }
+#define C_AIM(a, b) (Complex){ (a).re - (b).im, (a).im + (b).re }
+#define C_SIM(a, b) (Complex){ (a).re + (b).im, (a).im - (b).re }
 
-static void fft_calc(Complex *v, int n)
+#define FFT_CALC_FUNC(n, q)                                                     \
+static void fft_calc_ ## n(Complex *restrict v)                                 \
+{                                                                               \
+    const Complex *restrict e2 = cqt.exp_tbl + 2*q;                             \
+    const Complex *restrict e3 = cqt.exp_tbl + 3*q;                             \
+    const Complex *restrict e1 = cqt.exp_tbl + 4*q;                             \
+    Complex v0, v1, v2, v3;                                                     \
+    Complex a02, a13, s02, s13;                                                 \
+                                                                                \
+    fft_calc_ ## q(v);                                                          \
+    fft_calc_ ## q(q+v);                                                        \
+    fft_calc_ ## q(2*q+v);                                                      \
+    fft_calc_ ## q(3*q+v);                                                      \
+                                                                                \
+    v0 = v[0];                                                                  \
+    v2 = v[q]; /* bit reversed */                                               \
+    v1 = v[2*q];                                                                \
+    v3 = v[3*q];                                                                \
+    a02 = C_ADD(v0, v2);                                                        \
+    s02 = C_SUB(v0, v2);                                                        \
+    a13 = C_ADD(v1, v3);                                                        \
+    s13 = C_SUB(v1, v3);                                                        \
+    v[0] = C_ADD(a02, a13);                                                     \
+    v[q] = C_SIM(s02, s13);                                                     \
+    v[2*q] = C_SUB(a02, a13);                                                   \
+    v[3*q] = C_AIM(s02, s13);                                                   \
+                                                                                \
+    for (int x = 1; x < q; x++) {                                               \
+        v0 = v[x];                                                              \
+        v2 = C_MUL(e2[x], v[q+x]); /* bit reversed */                           \
+        v1 = C_MUL(e1[x], v[2*q+x]);                                            \
+        v3 = C_MUL(e3[x], v[3*q+x]);                                            \
+        a02 = C_ADD(v0, v2);                                                    \
+        s02 = C_SUB(v0, v2);                                                    \
+        a13 = C_ADD(v1, v3);                                                    \
+        s13 = C_SUB(v1, v3);                                                    \
+        v[x] = C_ADD(a02, a13);                                                 \
+        v[q+x] = C_SIM(s02, s13);                                               \
+        v[2*q+x] = C_SUB(a02, a13);                                             \
+        v[3*q+x] = C_AIM(s02, s13);                                             \
+    }                                                                           \
+}
+
+static inline void fft_calc_1(Complex *restrict v) { }
+static inline void fft_calc_2(Complex *restrict v)
 {
-    if (n > 2) {
-        int x, h = n>>1;
-        const Complex *t = cqt.exp_tbl + h;
-        Complex a, b;
-        fft_calc(v, h);
-        fft_calc(v + h, h);
-        a = v[0];
-        b = v[h];
-        v[0] = C_ADD(a, b);
-        v[h] = C_SUB(a, b);
-        for (x = 1; x < h; x++) {
-            a = v[x];
-            b = C_MUL(t[x], v[h+x]);
-            v[x] = C_ADD(a, b);
-            v[h+x] = C_SUB(a, b);
-        }
-    } else {
-        Complex a = v[0], b = v[1];
-        v[0] = C_ADD(a, b);
-        v[1] = C_SUB(a, b);
+    Complex v0 = v[0], v1 = v[1];
+    v[0] = C_ADD(v0, v1);
+    v[1] = C_SUB(v0, v1);
+}
+
+FFT_CALC_FUNC(4, 1)
+FFT_CALC_FUNC(8, 2)
+FFT_CALC_FUNC(16, 4)
+FFT_CALC_FUNC(32, 8)
+FFT_CALC_FUNC(64, 16)
+FFT_CALC_FUNC(128, 32)
+FFT_CALC_FUNC(256, 64)
+FFT_CALC_FUNC(512, 128)
+FFT_CALC_FUNC(1024, 256)
+FFT_CALC_FUNC(2048, 512)
+FFT_CALC_FUNC(4096, 1024)
+FFT_CALC_FUNC(8192, 2048)
+FFT_CALC_FUNC(16384, 4096)
+FFT_CALC_FUNC(32768, 8192)
+
+static void fft_calc(Complex *restrict v, int n)
+{
+    switch (n) {
+        case 1024: fft_calc_1024(v); break;
+        case 2048: fft_calc_2048(v); break;
+        case 4096: fft_calc_4096(v); break;
+        case 8192: fft_calc_8192(v); break;
+        case 16384: fft_calc_16384(v); break;
+        case 32768: fft_calc_32768(v); break;
     }
 }
 
@@ -167,7 +230,7 @@ int init(int rate, int width, int height, float bar_v, float sono_v, int super)
     if (cqt.fft_size > MAX_FFT_SIZE)
         return 0;
 
-    gen_perm_tbl(bits - 1);
+    gen_perm_tbl(bits - 2);
     gen_exp_tbl(cqt.fft_size);
 
     cqt.attack_size = ceil(rate * 0.033);
@@ -214,17 +277,24 @@ int init(int rate, int width, int height, float bar_v, float sono_v, int super)
 void calc(void)
 {
     int fft_size_h = cqt.fft_size >> 1;
+    int fft_size_q = cqt.fft_size >> 2;
     int shift = fft_size_h - cqt.attack_size;
 
     for (int x = 0; x < cqt.attack_size; x++) {
-        cqt.fft_buf[2*cqt.perm_tbl[x]] = (Complex){ cqt.input[0][shift+x], cqt.input[1][shift+x] };
-        cqt.fft_buf[2*cqt.perm_tbl[x]+1].re = cqt.attack_tbl[x] * cqt.input[0][fft_size_h+shift+x];
-        cqt.fft_buf[2*cqt.perm_tbl[x]+1].im = cqt.attack_tbl[x] * cqt.input[1][fft_size_h+shift+x];
+        int i = 4 * cqt.perm_tbl[x];
+        cqt.fft_buf[i] = (Complex){ cqt.input[0][shift+x], cqt.input[1][shift+x] };
+        cqt.fft_buf[i+1].re = cqt.attack_tbl[x] * cqt.input[0][fft_size_h+shift+x];
+        cqt.fft_buf[i+1].im = cqt.attack_tbl[x] * cqt.input[1][fft_size_h+shift+x];
+        cqt.fft_buf[i+2] = (Complex){ cqt.input[0][fft_size_q+shift+x], cqt.input[1][fft_size_q+shift+x] };
+        cqt.fft_buf[i+3] = (Complex){0,0};
     }
 
-    for (int x = cqt.attack_size; x < fft_size_h; x++) {
-        cqt.fft_buf[2*cqt.perm_tbl[x]] = (Complex){ cqt.input[0][shift+x], cqt.input[1][shift+x] };
-        cqt.fft_buf[2*cqt.perm_tbl[x]+1] = (Complex){0,0};
+    for (int x = cqt.attack_size; x < fft_size_q; x++) {
+        int i = 4 * cqt.perm_tbl[x];
+        cqt.fft_buf[i] = (Complex){ cqt.input[0][shift+x], cqt.input[1][shift+x] };
+        cqt.fft_buf[i+1] = (Complex){0,0};
+        cqt.fft_buf[i+2] = (Complex){ cqt.input[0][fft_size_q+shift+x], cqt.input[1][fft_size_q+shift+x] };
+        cqt.fft_buf[i+3] = (Complex){0,0};
     }
 
     fft_calc(cqt.fft_buf, cqt.fft_size);
