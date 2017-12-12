@@ -10,6 +10,19 @@
         <div style="position:relative; height:240px;" id="my-div-canvas">
             <div style="position:absolute; top:0px; left:0px;"><canvas id="my-canvas" width="640" height="240"></canvas></div>
             <div style="position:absolute; top:112px; left:0px;" id="my-div-img"><img id="my-img" src="axis-1920x48.png" width="640" height="16"/></div> 
+            <div id="my-knob-div" style="position:absolute; top:8px; left:8px; width:200px; color: #FFFFFF; font-size: 6pt;">
+                <div id="my-knob" style="visibility: hidden;">
+                    <code>Bass:</code><br/>
+                    <input type="range" min="-50" max="0" value="-30" id="my-bass-knob"/><br/>
+                    <code>Bar:</code><br/>
+                    <input type="range" min="0" max="40" value="19" id="my-bar-knob"/><br/>
+                    <code>Brightness:</code><br/>
+                    <input type="range" min="0" max="40" value="25" id="my-brightness-knob"/><br/>
+                </div>
+            </div>
+            <div id="my-perf-div" style="position:absolute; top:8px; left:220px; width:400px; color: #FFFFFF; font-size: 8pt; text-align: right;">
+                <pre id="my-perf" style="visibility: hidden;"></pre>
+            </div>
         </div>
         <div style="position:relative;"><audio autoplay="autoplay" controls="controls" id="my-audio" style="width:640px;"></audio></div>
         <div>SELECT AUDIO: <input type="file" onchange="load_audio()" id="my-file"/></div>
@@ -17,10 +30,6 @@
             [<a href="index.html?s=1280x480">1280x480</a>]
             [<a href="index.html?s=960x360">960x360</a>]
             [<a href="index.html?s=640x240">640x240</a>].
-            Bass: <input type="range" min="-50" max="0" value="-30" id="my-bass-knob"/>
-            Bar: <input type="range" min="0" max="40" value="19" id="my-bar-knob"/>
-            Brightness: <input type="range" min="0" max="40" value="25" id="my-brightness-knob"/>
         </p>
-        <p id="my-perf"></p>
     </body>
 </html>

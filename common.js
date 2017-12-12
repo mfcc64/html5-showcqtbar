@@ -83,11 +83,11 @@ function start_showcqtbar(width, height, bar_h) {
         render_time += end - middle;
         time_count++;
         if (time_count >= 100) {
-            document.getElementById("my-perf").textContent = "Render Time: " +
-                (calc_time/time_count).toFixed(2) + " ms (FFT+CQT calculation) + " +
-                (render_time/time_count).toFixed(2) + " ms (render) = " +
-                ((calc_time + render_time)/time_count).toFixed(2) + " ms (total). Frame Rate: " +
-                (1000*time_count/(start - last_time)).toFixed(2) + " fps.";
+            document.getElementById("my-perf").textContent =
+                (calc_time/time_count).toFixed(2)                   + "  ms   (calc time)\n" +
+                (render_time/time_count).toFixed(2)                 + "  ms (render time)\n" +
+                ((calc_time + render_time)/time_count).toFixed(2)   + "  ms  (total time)\n" +
+                (1000*time_count/(start - last_time)).toFixed(2)    + " fps  (frame rate)\n";
             calc_time = 0.0;
             render_time = 0.0;
             time_count = 0;
@@ -127,5 +127,27 @@ window.onload = function() {
     document.getElementById("my-img").width = w;
     document.getElementById("my-img").height = axis_h;
     document.getElementById("my-audio").style.width = w + "px";
+    document.getElementById("my-knob-div").style.width = (w/2-8) + "px";
+    document.getElementById("my-knob-div").style.height = (h/2-8) + "px";
+    document.getElementById("my-perf-div").style.left = (w/2) + "px";
+    document.getElementById("my-perf-div").style.width = (w/2-8) + "px";
+    document.getElementById("my-perf-div").style.height = (h/2-8) + "px";
+
+    document.getElementById("my-perf-div").onmouseover = function() {
+        document.getElementById("my-perf").style.visibility = "visible";
+    }
+
+    document.getElementById("my-perf-div").onmouseout = function() {
+        document.getElementById("my-perf").style.visibility = "hidden";
+    }
+
+    document.getElementById("my-knob-div").onmouseover = function() {
+        document.getElementById("my-knob").style.visibility = "visible";
+    }
+
+    document.getElementById("my-knob-div").onmouseout = function() {
+        document.getElementById("my-knob").style.visibility = "hidden";
+    }
+
     start_showcqtbar(w, h, bar_h);
 }
