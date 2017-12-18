@@ -114,8 +114,14 @@ window.onload = function() {
         w = 960;
     else if (qstring == "?s=1280x480")
         w = 1280;
+    else if (qstring == "?s=1600x600")
+        w = 1600;
+    else if (qstring == "?s=1920x720")
+        w = 1920;
+    else if (qstring == "?s=auto")
+        w = Math.min(Math.max(Math.floor(document.body.clientWidth/80) * 80, 640), 1920);
     else
-        window.location.replace("index.html?s=960x360");
+        window.location.replace("index.html?s=auto");
 
     h = (w * 3 / 8)|0;
     axis_h = (w / 40)|0;

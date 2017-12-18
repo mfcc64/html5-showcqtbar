@@ -5,6 +5,10 @@
         <title>ShowCQTBar Audio Spectrum Visualization</title>
         <script type="text/javascript" src="showcqtbar.js"></script>
         <script type="text/javascript" src="common.js"></script>
+        <style type="text/css">
+            *, body, pre, p { margin: 0; padding: 0; border: 0; }
+            p { padding-top: 4px; }
+        </style>
     </head>
     <body>
         <div style="position:relative; height:240px;" id="my-div-canvas">
@@ -27,6 +31,9 @@
         <div style="position:relative;"><audio autoplay="autoplay" controls="controls" id="my-audio" style="width:640px;"></audio></div>
         <div>SELECT AUDIO: <input type="file" onchange="load_audio()" id="my-file"/></div>
         <p>Resolutions:
+            [<a href="index.html?s=auto"">Auto</a>]
+            [<a href="index.html?s=1920x720">1920x720</a>]
+            [<a href="index.html?s=1600x600">1600x600</a>]
             [<a href="index.html?s=1280x480">1280x480</a>]
             [<a href="index.html?s=960x360">960x360</a>]
             [<a href="index.html?s=640x240">640x240</a>]
