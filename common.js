@@ -52,6 +52,7 @@ function start_showcqtbar(width, height, bar_h) {
     var calc_time = 0.0;
     var time_count = 0;
     var last_time = performance.now();
+    var showhistory = document.getElementById("showhistory-checkbox");
 
     bass_knob.onchange = function() {
         iir_l.gain.value = bass_knob.value;
@@ -72,10 +73,25 @@ function start_showcqtbar(width, height, bar_h) {
         analyser_r.getFloatTimeDomainData(audio_data_r);
         showcqtbar.calc();
         var middle = performance.now();
+        var showhistory_checked = showhistory.checked;
         for (var y = 0; y < height/2; y++) {
             showcqtbar.render_line(y);
             img_buffer.data.set(line_buffer, 4*width*y);
-            img_buffer.data.set(line_buffer, 4*width*(height-1-y));
+            if (!showhistory_checked || y >= bar_h)
+                img_buffer.data.set(line_buffer, 4*width*(height-1-y));
+        }
+
+        if (showhistory_checked) {
+            if (img_buffer.data.copyWithin) {
+                img_buffer.data.copyWithin(4*width*(height-bar_h), 4*width*(height-bar_h-1), 4*width*(height-1));
+            } else {
+                for (var y = 0; y < bar_h; y++) {
+                    var dst = 4 * width * (height - y - 1);
+                    var src = 4 * width * (height - y - 2);
+                    for (var x = 0; x < 4*width; x++)
+                        img_buffer.data[dst+x] = img_buffer.data[src+x];
+                }
+            }
         }
         canvas.putImageData(img_buffer, 0, 0);
         var end = performance.now();
