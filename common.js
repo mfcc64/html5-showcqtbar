@@ -68,6 +68,21 @@ function start_showcqtbar(width, height, bar_h) {
 
     function draw() {
         requestAnimationFrame(draw);
+        var new_width = Math.min(Math.max(Math.floor(window.innerWidth/80) * 80, 640), 1920);
+        if (new_width != width && window.location.search == "?s=auto") {
+            width = new_width;
+            height = (width * 3 / 8)|0;
+            var axis_h = (width / 40)|0;
+            bar_h = ((height - axis_h)/2)|0;
+            resize_canvas(width, height, bar_h, axis_h);
+            showcqtbar = new ShowCQTBar(audio_ctx.sampleRate, width, bar_h,
+                                        Math.pow(10, bar_knob.value/20),
+                                        Math.pow(10, brightness_knob.value/20), 1);
+            audio_data_l = showcqtbar.get_input_array(0);
+            audio_data_r = showcqtbar.get_input_array(1);
+            line_buffer = showcqtbar.get_output_array();
+            img_buffer = canvas.createImageData(width, height);
+        }
         var start = performance.now();
         analyser_l.getFloatTimeDomainData(audio_data_l);
         analyser_r.getFloatTimeDomainData(audio_data_r);
@@ -120,28 +135,7 @@ function load_audio() {
     audio.src = url.createObjectURL(file);
 }
 
-window.onload = function() {
-    var qstring = window.location.search;
-    var w = 0, h = 0, axis_h = 0, bar_h = 0;
-
-    if (qstring == "?s=640x240")
-        w = 640;
-    else if (qstring == "?s=960x360")
-        w = 960;
-    else if (qstring == "?s=1280x480")
-        w = 1280;
-    else if (qstring == "?s=1600x600")
-        w = 1600;
-    else if (qstring == "?s=1920x720")
-        w = 1920;
-    else if (qstring == "?s=auto")
-        w = Math.min(Math.max(Math.floor(document.body.clientWidth/80) * 80, 640), 1920);
-    else
-        window.location.replace("index.html?s=auto");
-
-    h = (w * 3 / 8)|0;
-    axis_h = (w / 40)|0;
-    bar_h = ((h - axis_h)/2)|0;
+function resize_canvas(w, h, bar_h, axis_h) {
     document.getElementById("my-canvas").width = w;
     document.getElementById("my-canvas").height = h;
     document.getElementById("my-div-canvas").style.height = h + "px";
@@ -154,6 +148,33 @@ window.onload = function() {
     document.getElementById("my-perf-div").style.left = (w/2) + "px";
     document.getElementById("my-perf-div").style.width = (w/2-8) + "px";
     document.getElementById("my-perf-div").style.height = (h/2-8) + "px";
+}
+
+window.onload = function() {
+    var qstring = window.location.search;
+    var w = 0, h = 0, axis_h = 0, bar_h = 0;
+    var auto_size = 0;
+
+    if (qstring == "?s=640x240")
+        w = 640;
+    else if (qstring == "?s=960x360")
+        w = 960;
+    else if (qstring == "?s=1280x480")
+        w = 1280;
+    else if (qstring == "?s=1600x600")
+        w = 1600;
+    else if (qstring == "?s=1920x720")
+        w = 1920;
+    else if (qstring == "?s=auto")
+        w = Math.min(Math.max(Math.floor(window.innerWidth/80) * 80, 640), 1920);
+    else
+        window.location.replace("index.html?s=auto");
+
+    h = (w * 3 / 8)|0;
+    axis_h = (w / 40)|0;
+    bar_h = ((h - axis_h)/2)|0;
+
+    resize_canvas(w, h, bar_h, axis_h);
 
     document.getElementById("my-perf-div").onmouseover = function() {
         document.getElementById("my-perf").style.visibility = "visible";
