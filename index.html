@@ -28,13 +28,13 @@
                 <pre id="my-perf" style="visibility: hidden;"></pre>
             </div>
         </div>
-        <div style="position:relative;"><audio autoplay="autoplay" controls="controls" id="my-audio" style="width:640px;"></audio></div>
-        <div>
+        <div id="my-audio-div" style="position:relative;"><audio autoplay="autoplay" controls="controls" id="my-audio" style="width:640px;"></audio></div>
+        <div id="my-input-div">
             <label>SELECT AUDIO: <input type="file" accept="audio/*,video/*" onchange="load_audio()" id="my-file"/></label>
             <label><input type="checkbox" id="showhistory-checkbox"/> Show history</label>
         </div>
-        <p>Resolutions:
-            [<a href="index.html?s=auto"">Auto</a>]
+        <p id="my-p">Resolutions:
+            [<a href="index.html?s=auto">Auto</a>]
             [<a href="index.html?s=1920x720">1920x720</a>]
             [<a href="index.html?s=1600x600">1600x600</a>]
             [<a href="index.html?s=1280x480">1280x480</a>]

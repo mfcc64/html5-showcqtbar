@@ -68,11 +68,15 @@ function start_showcqtbar(width, height, bar_h) {
 
     function draw() {
         requestAnimationFrame(draw);
-        var new_width = Math.min(Math.max(Math.floor(window.innerWidth/80) * 80, 640), 1920);
+        var new_width = Math.min(Math.max(Math.floor(window.innerWidth), 640), 1920);
         if (new_width != width && window.location.search == "?s=auto") {
             width = new_width;
-            height = (width * 3 / 8)|0;
-            var axis_h = (width / 40)|0;
+            height = Math.floor(width * 3 / 16) * 2;
+            var expected_h = Math.floor((window.innerHeight - document.getElementById("my-audio-div").clientHeight
+                                    - document.getElementById("my-input-div").clientHeight
+                                    - document.getElementById("my-p").clientHeight)/2) * 2;
+            height = Math.min(height, Math.max(expected_h, 120));
+            var axis_h = Math.round(width / 80) * 2;
             bar_h = ((height - axis_h)/2)|0;
             resize_canvas(width, height, bar_h, axis_h);
             showcqtbar = new ShowCQTBar(audio_ctx.sampleRate, width, bar_h,
@@ -166,12 +170,19 @@ window.onload = function() {
     else if (qstring == "?s=1920x720")
         w = 1920;
     else if (qstring == "?s=auto")
-        w = Math.min(Math.max(Math.floor(window.innerWidth/80) * 80, 640), 1920);
+        w = Math.min(Math.max(Math.floor(window.innerWidth), 640), 1920);
     else
         window.location.replace("index.html?s=auto");
 
-    h = (w * 3 / 8)|0;
-    axis_h = (w / 40)|0;
+    h = Math.floor(w * 3 / 16) * 2;
+    if (qstring == "?s=auto") {
+        var expected_h = Math.floor((window.innerHeight - document.getElementById("my-audio-div").clientHeight
+                                    - document.getElementById("my-input-div").clientHeight
+                                    - document.getElementById("my-p").clientHeight)/2) * 2;
+        h = Math.min(h, Math.max(expected_h, 120));
+        document.body.style.overflow = "hidden";
+    }
+    axis_h = Math.round(w / 80) * 2;
     bar_h = ((h - axis_h)/2)|0;
 
     resize_canvas(w, h, bar_h, axis_h);
