@@ -52,7 +52,10 @@ function start_showcqtbar(width, height, bar_h) {
     var calc_time = 0.0;
     var time_count = 0;
     var last_time = performance.now();
-    var showhistory = document.getElementById("showhistory-checkbox");
+    var waterfall_off = document.getElementById("my-waterfall-off");
+    var waterfall_slow = document.getElementById("my-waterfall-slow");
+    var waterfall_medium = document.getElementById("my-waterfall-medium");
+    var waterfall_fast = document.getElementById("my-waterfall-fast");
 
     bass_knob.onchange = function() {
         iir_l.gain.value = bass_knob.value;
@@ -92,23 +95,43 @@ function start_showcqtbar(width, height, bar_h) {
         analyser_r.getFloatTimeDomainData(audio_data_r);
         showcqtbar.calc();
         var middle = performance.now();
-        var showhistory_checked = showhistory.checked;
+        var waterfall = !waterfall_off.checked;
         for (var y = 0; y < height/2; y++) {
             showcqtbar.render_line(y);
             img_buffer.data.set(line_buffer, 4*width*y);
-            if (!showhistory_checked || y >= bar_h)
+            if (!waterfall || y >= bar_h)
                 img_buffer.data.set(line_buffer, 4*width*(height-1-y));
         }
 
-        if (showhistory_checked) {
+        if (waterfall) {
+            if (waterfall_slow.checked)
+                waterfall = 1;
+            else if (waterfall_medium.checked)
+                waterfall = 2;
+            else
+                waterfall = 3;
+
             if (img_buffer.data.copyWithin) {
-                img_buffer.data.copyWithin(4*width*(height-bar_h), 4*width*(height-bar_h-1), 4*width*(height-1));
+                img_buffer.data.copyWithin(4*width*(height-bar_h+waterfall), 4*width*(height-bar_h), 4*width*(height-waterfall));
             } else {
-                for (var y = 0; y < bar_h; y++) {
+                for (var y = 0; y < bar_h - waterfall; y++) {
                     var dst = 4 * width * (height - y - 1);
-                    var src = 4 * width * (height - y - 2);
+                    var src = 4 * width * (height - y - 1 - waterfall);
                     for (var x = 0; x < 4*width; x++)
                         img_buffer.data[dst+x] = img_buffer.data[src+x];
+                }
+            }
+            var src0 = 4 * width * (height - bar_h - 1);
+            var src1 = 4 * width * (height - bar_h + waterfall);
+            var dst = 4 * width * (height - bar_h);
+            for (var x = 0; x < 4*width; x++)
+                img_buffer.data[dst+x] = img_buffer.data[src0+x];
+            for (var y = 1; y < waterfall; y++) {
+                var dst = 4 * width * (height - bar_h + y);
+                var a1 = y / waterfall;
+                var a0 = 1.0 - a1;
+                for (var x = 0; x < 4*width; x++) {
+                    img_buffer.data[dst+x] = (a0 * img_buffer.data[src0+x] + a1 * img_buffer.data[src1+x] + 0.5)|0;
                 }
             }
         }

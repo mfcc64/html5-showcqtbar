@@ -6,22 +6,32 @@
         <script type="text/javascript" src="showcqtbar.js"></script>
         <script type="text/javascript" src="common.js"></script>
         <style type="text/css">
-            *, body, pre, p { margin: 0; padding: 0; border: 0; }
+            *, body, pre, p, table, td, tr { margin: 0; padding: 0; border: 0; border-collapse: collapse; }
             p { padding-top: 4px; }
+            td { padding-right: 4px; }
         </style>
     </head>
     <body>
         <div style="position:relative; height:240px;" id="my-div-canvas">
             <div style="position:absolute; top:0px; left:0px;"><canvas id="my-canvas" width="640" height="240"></canvas></div>
             <div style="position:absolute; top:112px; left:0px;" id="my-div-img"><img id="my-img" src="axis-1920x48.png" width="640" height="16"/></div> 
-            <div id="my-knob-div" style="position:absolute; top:8px; left:8px; width:200px; color: #FFFFFF; font-size: 6pt;">
+            <div id="my-knob-div" style="position:absolute; top:8px; left:8px; width:200px; color: #FFFFFF; font-size: 8pt; font-family: mono;">
                 <div id="my-knob" style="visibility: hidden;">
-                    <code>Bass:</code><br/>
-                    <input type="range" min="-50" max="0" value="-30" id="my-bass-knob"/><br/>
-                    <code>Bar:</code><br/>
-                    <input type="range" min="0" max="40" value="19" id="my-bar-knob"/><br/>
-                    <code>Brightness:</code><br/>
-                    <input type="range" min="0" max="40" value="25" id="my-brightness-knob"/><br/>
+                    <table>
+                        <tr><td>Waterfall</td>
+                        <td>
+                            <input type="radio" name="waterfall" id="my-waterfall-off" checked="checked"/><label for="my-waterfall-off">Off</label>
+                            <input type="radio" name="waterfall" id="my-waterfall-slow"/><label for="my-waterfall-slow">Slow</label>
+                            <input type="radio" name="waterfall" id="my-waterfall-medium"/><label for="my-waterfall-medium">Medium</label>
+                            <input type="radio" name="waterfall" id="my-waterfall-fast"/><label for="my-waterfall-fast">Fast</label>
+                        </td></tr>
+                        <tr><td><label for="my-bass-knob">Bass</label></td>
+                        <td><input type="range" min="-50" max="0" value="-30" id="my-bass-knob"/></td></tr>
+                        <tr><td><label for="my-bar-knob">Bar</label></td>
+                        <td><input type="range" min="0" max="40" value="19" id="my-bar-knob"/></td></tr>
+                        <tr><td><label for="my-brightness-knob">Brightness</label></td>
+                        <td><input type="range" min="0" max="40" value="25" id="my-brightness-knob"/></td></tr>
+                    </table>
                 </div>
             </div>
             <div id="my-perf-div" style="position:absolute; top:8px; left:220px; width:400px; color: #FFFFFF; font-size: 8pt; text-align: right;">
@@ -30,8 +40,7 @@
         </div>
         <div id="my-audio-div" style="position:relative;"><audio autoplay="autoplay" controls="controls" id="my-audio" style="width:640px;"></audio></div>
         <div id="my-input-div">
-            <label>SELECT AUDIO: <input type="file" accept="audio/*,video/*" onchange="load_audio()" id="my-file"/></label>
-            <label><input type="checkbox" id="showhistory-checkbox"/> Show history</label>
+            <label for="my-file">SELECT AUDIO:</label> <input type="file" accept="audio/*,video/*" onchange="load_audio()" id="my-file"/>
         </div>
         <p id="my-p">Resolutions:
             [<a href="index.html?s=auto">Auto</a>]
