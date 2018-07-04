@@ -1,18 +1,23 @@
 
-function start_showcqtbar(width, height, bar_h) {
+function start_showcqtbar(width, height, bar_h, stream) {
     var audio_ctx = new(window.AudioContext || window.webkitAudioContext)();
     var analyser_l = audio_ctx.createAnalyser();
     var analyser_r = audio_ctx.createAnalyser();
     var splitter = audio_ctx.createChannelSplitter(2);
-    var merger = audio_ctx.createChannelMerger(2);
     var panner = audio_ctx.createStereoPanner();
-    var panner_l = audio_ctx.createStereoPanner();
-    var panner_r = audio_ctx.createStereoPanner();
-    var splitter_l = audio_ctx.createChannelSplitter(2);
-    var splitter_r = audio_ctx.createChannelSplitter(2);
+    if (!stream) {
+        var merger = audio_ctx.createChannelMerger(2);
+        var panner_l = audio_ctx.createStereoPanner();
+        var panner_r = audio_ctx.createStereoPanner();
+        var splitter_l = audio_ctx.createChannelSplitter(2);
+        var splitter_r = audio_ctx.createChannelSplitter(2);
+    }
     var iir_l = audio_ctx.createBiquadFilter();
     var iir_r = audio_ctx.createBiquadFilter();
-    var source = audio_ctx.createMediaElementSource(document.getElementById("my-audio"));
+    var source = stream ?
+        audio_ctx.createMediaStreamSource(stream) :
+        audio_ctx.createMediaElementSource(document.getElementById("my-audio"));
+
     var canvas = document.getElementById("my-canvas").getContext("2d", {alpha:false});
     var bar_knob = document.getElementById("my-bar-knob");
     var brightness_knob = document.getElementById("my-brightness-knob");
@@ -24,12 +29,14 @@ function start_showcqtbar(width, height, bar_h) {
     analyser_r.fftSize = showcqtbar.fft_size;
     source.connect(panner);
     panner.connect(splitter);
-    splitter.connect(panner_l, 0);
-    splitter.connect(panner_r, 1);
-    panner_l.connect(splitter_l);
-    panner_r.connect(splitter_r);
-    splitter_l.connect(merger, 0, 0);
-    splitter_r.connect(merger, 0, 1);
+    if (!stream) {
+        splitter.connect(panner_l, 0);
+        splitter.connect(panner_r, 1);
+        panner_l.connect(splitter_l);
+        panner_r.connect(splitter_r);
+        splitter_l.connect(merger, 0, 0);
+        splitter_r.connect(merger, 0, 1);
+    }
     iir_l.type = "peaking";
     iir_l.frequency.value = 10;
     iir_l.Q.value = 0.33;
@@ -38,11 +45,17 @@ function start_showcqtbar(width, height, bar_h) {
     iir_r.frequency.value = 10;
     iir_r.Q.value = 0.33;
     iir_r.gain.value = bass_knob.value;
-    splitter_l.connect(iir_l, 1);
-    splitter_r.connect(iir_r, 1);
+    if (stream) {
+        splitter.connect(iir_l, 0);
+        splitter.connect(iir_r, 1);
+    } else {
+        splitter_l.connect(iir_l, 1);
+        splitter_r.connect(iir_r, 1);
+    }
     iir_l.connect(analyser_l);
     iir_r.connect(analyser_r);
-    merger.connect(audio_ctx.destination);
+    if (!stream)
+        merger.connect(audio_ctx.destination);
     var audio_data_l = showcqtbar.get_input_array(0);
     var audio_data_r = showcqtbar.get_input_array(1);
     var line_buffer_tmp = null, line_buffer = null;
@@ -169,7 +182,8 @@ function resize_canvas(w, h, bar_h, axis_h) {
     document.getElementById("my-div-img").style.top = bar_h + "px";
     document.getElementById("my-img").width = w;
     document.getElementById("my-img").height = axis_h;
-    document.getElementById("my-audio").style.width = w + "px";
+    if (document.getElementById("my-audio"))
+        document.getElementById("my-audio").style.width = w + "px";
     document.getElementById("my-knob-div").style.width = (w/2-8) + "px";
     document.getElementById("my-knob-div").style.height = (h/2-8) + "px";
     document.getElementById("my-perf-div").style.left = (w/2) + "px";
@@ -194,8 +208,10 @@ window.onload = function() {
         w = 1920;
     else if (qstring == "?s=auto")
         w = Math.min(Math.max(Math.floor(window.innerWidth), 640), 1920);
-    else
+    else if (document.getElementById("my-audio"))
         window.location.replace("index.html?s=auto");
+    else
+        window.location.replace("capture.html?s=auto");
 
     h = Math.floor(w * 3 / 16) * 2;
     if (qstring == "?s=auto") {
@@ -226,5 +242,18 @@ window.onload = function() {
         document.getElementById("my-knob").style.visibility = "hidden";
     }
 
-    start_showcqtbar(w, h, bar_h);
+
+    if (document.getElementById("my-audio")) {
+        start_showcqtbar(w, h, bar_h, null);
+    } else if (navigator.mediaDevices) {
+        navigator.mediaDevices.getUserMedia({audio: true, video: false})
+        .then(function(stream) {
+            start_showcqtbar(w, h, bar_h, stream);
+        })
+        .catch(function(err) {
+            alert("Error on navigator.mediaDevices.getUserMedia(): " + err.name + ".");
+        });
+    } else {
+        alert("navigator.mediaDevices is not supported on your browser.");
+    }
 }
