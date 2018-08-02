@@ -5,13 +5,6 @@ function start_showcqtbar(width, height, bar_h, stream) {
     var analyser_r = audio_ctx.createAnalyser();
     var splitter = audio_ctx.createChannelSplitter(2);
     var panner = audio_ctx.createStereoPanner();
-    if (!stream) {
-        var merger = audio_ctx.createChannelMerger(2);
-        var panner_l = audio_ctx.createStereoPanner();
-        var panner_r = audio_ctx.createStereoPanner();
-        var splitter_l = audio_ctx.createChannelSplitter(2);
-        var splitter_r = audio_ctx.createChannelSplitter(2);
-    }
     var iir_l = audio_ctx.createBiquadFilter();
     var iir_r = audio_ctx.createBiquadFilter();
     var source = stream ?
@@ -29,14 +22,6 @@ function start_showcqtbar(width, height, bar_h, stream) {
     analyser_r.fftSize = showcqtbar.fft_size;
     source.connect(panner);
     panner.connect(splitter);
-    if (!stream) {
-        splitter.connect(panner_l, 0);
-        splitter.connect(panner_r, 1);
-        panner_l.connect(splitter_l);
-        panner_r.connect(splitter_r);
-        splitter_l.connect(merger, 0, 0);
-        splitter_r.connect(merger, 0, 1);
-    }
     iir_l.type = "peaking";
     iir_l.frequency.value = 10;
     iir_l.Q.value = 0.33;
@@ -45,17 +30,12 @@ function start_showcqtbar(width, height, bar_h, stream) {
     iir_r.frequency.value = 10;
     iir_r.Q.value = 0.33;
     iir_r.gain.value = bass_knob.value;
-    if (stream) {
-        splitter.connect(iir_l, 0);
-        splitter.connect(iir_r, 1);
-    } else {
-        splitter_l.connect(iir_l, 1);
-        splitter_r.connect(iir_r, 1);
-    }
+    splitter.connect(iir_l, 0);
+    splitter.connect(iir_r, 1);
     iir_l.connect(analyser_l);
     iir_r.connect(analyser_r);
     if (!stream)
-        merger.connect(audio_ctx.destination);
+        panner.connect(audio_ctx.destination);
     var audio_data_l = showcqtbar.get_input_array(0);
     var audio_data_r = showcqtbar.get_input_array(1);
     var line_buffer_tmp = null, line_buffer = null;
