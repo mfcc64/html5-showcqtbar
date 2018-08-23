@@ -171,7 +171,7 @@ function resize_canvas(w, h, bar_h, axis_h) {
     document.getElementById("my-perf-div").style.height = (h/2-8) + "px";
 }
 
-window.onload = function() {
+window.addEventListener("load", function(event) {
     var qstring = window.location.search;
     var w = 0, h = 0, axis_h = 0, bar_h = 0;
     var auto_size = 0;
@@ -236,4 +236,4 @@ window.onload = function() {
     } else {
         alert("navigator.mediaDevices is not supported on your browser.");
     }
-}
+});
