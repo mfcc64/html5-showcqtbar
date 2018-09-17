@@ -5,8 +5,7 @@ function start_showcqtbar(width, height, bar_h, stream) {
     var analyser_r = audio_ctx.createAnalyser();
     var splitter = audio_ctx.createChannelSplitter(2);
     var panner = audio_ctx.createStereoPanner();
-    var iir_l = audio_ctx.createBiquadFilter();
-    var iir_r = audio_ctx.createBiquadFilter();
+    var iir = audio_ctx.createBiquadFilter();
     var source = stream ?
         audio_ctx.createMediaStreamSource(stream) :
         audio_ctx.createMediaElementSource(document.getElementById("my-audio"));
@@ -21,19 +20,14 @@ function start_showcqtbar(width, height, bar_h, stream) {
     analyser_l.fftSize = showcqtbar.fft_size;
     analyser_r.fftSize = showcqtbar.fft_size;
     source.connect(panner);
-    panner.connect(splitter);
-    iir_l.type = "peaking";
-    iir_l.frequency.value = 10;
-    iir_l.Q.value = 0.33;
-    iir_l.gain.value = bass_knob.value;
-    iir_r.type = "peaking";
-    iir_r.frequency.value = 10;
-    iir_r.Q.value = 0.33;
-    iir_r.gain.value = bass_knob.value;
-    splitter.connect(iir_l, 0);
-    splitter.connect(iir_r, 1);
-    iir_l.connect(analyser_l);
-    iir_r.connect(analyser_r);
+    iir.type = "peaking";
+    iir.frequency.value = 10;
+    iir.Q.value = 0.33;
+    iir.gain.value = bass_knob.value;
+    panner.connect(iir);
+    iir.connect(splitter);
+    splitter.connect(analyser_l, 0);
+    splitter.connect(analyser_r, 1);
     if (!stream)
         panner.connect(audio_ctx.destination);
     var audio_data_l = showcqtbar.get_input_array(0);
@@ -51,8 +45,7 @@ function start_showcqtbar(width, height, bar_h, stream) {
     var waterfall_fast = document.getElementById("my-waterfall-fast");
 
     bass_knob.onchange = function() {
-        iir_l.gain.value = bass_knob.value;
-        iir_r.gain.value = bass_knob.value;
+        iir.gain.value = bass_knob.value;
     }
 
     function change_volume() {
