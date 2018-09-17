@@ -345,21 +345,22 @@ void calc(void)
         cqt.rcp_h_buf[x] = 1.0f / (cqt.color_buf[x].h + 0.0001f);
 }
 
-void render_line(int y)
+void render_line(int y, int alpha)
 {
+    alpha = (alpha < 0) ? 0 : (alpha > 255) ? 255 : alpha;
     if (y >= 0 && y < cqt.height) {
         float ht = (cqt.height - y) / (float) cqt.height;
         for (int x = 0; x < cqt.width; x++) {
             if (cqt.color_buf[x].h <= ht) {
-                cqt.output[x] = (Color) {0,0,0,255};
+                cqt.output[x] = (Color) {0,0,0,alpha};
             } else {
                 float mul = (cqt.color_buf[x].h - ht) * cqt.rcp_h_buf[x];
-                cqt.output[x] = (Color){mul*cqt.color_buf[x].r+0.5f, mul*cqt.color_buf[x].g+0.5f, mul*cqt.color_buf[x].b+0.5f, 255};
+                cqt.output[x] = (Color){mul*cqt.color_buf[x].r+0.5f, mul*cqt.color_buf[x].g+0.5f, mul*cqt.color_buf[x].b+0.5f, alpha};
             }
         }
     } else {
         for (int x = 0; x < cqt.width; x++)
-            cqt.output[x] = (Color){cqt.color_buf[x].r+0.5f, cqt.color_buf[x].g+0.5f, cqt.color_buf[x].b+0.5f, 255};
+            cqt.output[x] = (Color){cqt.color_buf[x].r+0.5f, cqt.color_buf[x].g+0.5f, cqt.color_buf[x].b+0.5f, alpha};
     }
 }
 

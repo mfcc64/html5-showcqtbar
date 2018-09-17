@@ -39,7 +39,11 @@ function ShowCQTBar(rate, width, height, bar_v, sono_v, supersampling) {
     /* calculate cqt from input_array */
     this.calc = function() { this.asm._calc(); }
     /* render showcqtbar at line y to output_array */
-    this.render_line = function(y) { this.asm._render_line(y); }
+    this.render_line = function(y, alpha) {
+        if (alpha == undefined)
+            alpha = 255;
+        this.asm._render_line(y, alpha);
+    }
     /* set volume at runtime */
     this.set_volume = function(bar_v, sono_v) { this.asm._set_volume(bar_v, sono_v); }
     /* set height at runtime */
@@ -1897,13 +1901,15 @@ function _fft_calc_32(i2) {
  return;
 }
 
-function _render_line(i1) {
+function _render_line(i2, i1) {
+ i2 = i2 | 0;
  i1 = i1 | 0;
- var i2 = 0, f3 = f0, i4 = 0, i5 = 0, f6 = f0;
- if ((i1 | 0) > -1) {
-  i2 = HEAP32[240769] | 0;
-  if ((i2 | 0) > (i1 | 0)) {
-   f6 = Math_fround(Math_fround(i2 - i1 | 0) / Math_fround(i2 | 0));
+ var f3 = f0, i4 = 0, i5 = 0, f6 = f0, i7 = 0;
+ i7 = (i1 | 0) < 0 ? 0 : ((i1 | 0) < 255 ? i1 : 255) & 255;
+ if ((i2 | 0) > -1) {
+  i1 = HEAP32[240769] | 0;
+  if ((i1 | 0) > (i2 | 0)) {
+   f6 = Math_fround(Math_fround(i1 - i2 | 0) / Math_fround(i1 | 0));
    if ((HEAP32[240768] | 0) > 0) i5 = 0; else return;
    do {
     f3 = Math_fround(HEAPF32[893952 + (i5 << 4) + 12 >> 2]);
@@ -1921,7 +1927,7 @@ function _render_line(i1) {
     HEAP8[262656 + (i5 << 2) >> 0] = i4;
     HEAP8[262656 + (i5 << 2) + 1 >> 0] = i2;
     HEAP8[262656 + (i5 << 2) + 2 >> 0] = i1;
-    HEAP8[262656 + (i5 << 2) + 3 >> 0] = -1;
+    HEAP8[262656 + (i5 << 2) + 3 >> 0] = i7;
     i5 = i5 + 1 | 0;
    } while ((i5 | 0) < (HEAP32[240768] | 0));
    return;
@@ -1935,7 +1941,7 @@ function _render_line(i1) {
   HEAP8[262656 + (i1 << 2) >> 0] = i2;
   HEAP8[262656 + (i1 << 2) + 1 >> 0] = i4;
   HEAP8[262656 + (i1 << 2) + 2 >> 0] = i5;
-  HEAP8[262656 + (i1 << 2) + 3 >> 0] = -1;
+  HEAP8[262656 + (i1 << 2) + 3 >> 0] = i7;
   i1 = i1 + 1 | 0;
  } while ((i1 | 0) < (HEAP32[240768] | 0));
  return;
