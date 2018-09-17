@@ -42,6 +42,8 @@ function ShowCQTBar(rate, width, height, bar_v, sono_v, supersampling) {
     this.render_line = function(y) { this.asm._render_line(y); }
     /* set volume at runtime */
     this.set_volume = function(bar_v, sono_v) { this.asm._set_volume(bar_v, sono_v); }
+    /* set height at runtime */
+    this.set_height = function(height) { this.asm._set_height(height); }
 }
 
 
@@ -1954,6 +1956,12 @@ function _set_volume(f1, f2) {
  return;
 }
 
+function _set_height(i1) {
+ i1 = i1 | 0;
+ HEAP32[240769] = (i1 | 0) > 1080 ? 1080 : (i1 | 0) > 1 ? i1 : 1;
+ return;
+}
+
 function _get_input_array(i1) {
  i1 = i1 | 0;
  return 512 + (((i1 | 0) != 0 & 1) << 17) | 0;
@@ -1964,5 +1972,5 @@ function _get_output_array() {
 }
 
 // EMSCRIPTEN_END_FUNCS
-  return { _render_line: _render_line, _init: _init, _get_input_array: _get_input_array, _calc: _calc, _get_output_array: _get_output_array, _set_volume: _set_volume };
+  return { _render_line: _render_line, _init: _init, _get_input_array: _get_input_array, _calc: _calc, _get_output_array: _get_output_array, _set_height: _set_height, _set_volume: _set_volume };
 }

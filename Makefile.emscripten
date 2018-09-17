@@ -3,6 +3,6 @@ EMCC=emcc
 
 showcqtbar-emscripten.js: showcqtbar.c
 	$(EMCC) -O3 -g2 --memory-init-file 0 \
-		-s "EXPORTED_FUNCTIONS=[ '_init', '_calc', '_render_line', '_get_input_array', '_get_output_array', '_set_volume' ]" \
+		-s "EXPORTED_FUNCTIONS=[ '_init', '_calc', '_render_line', '_get_input_array', '_get_output_array', '_set_volume', '_set_height' ]" \
 		-s PRECISE_F32=1 \
 		showcqtbar.c -o showcqtbar-emscripten.js
