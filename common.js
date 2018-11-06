@@ -1,6 +1,13 @@
 
 function start_showcqtbar(width, height, bar_h, stream) {
     var audio_ctx = new(window.AudioContext || window.webkitAudioContext)();
+    function resume_audio_ctx() {
+        if (audio_ctx.state === "suspended") {
+            audio_ctx.resume();
+            window.setTimeout(resume_audio_ctx, 100);
+        }
+    }
+    resume_audio_ctx();
     var analyser_l = audio_ctx.createAnalyser();
     var analyser_r = audio_ctx.createAnalyser();
     var splitter = audio_ctx.createChannelSplitter(2);
