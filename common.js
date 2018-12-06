@@ -65,9 +65,9 @@ function start_showcqtbar(width, height, bar_h, stream) {
     function draw() {
         requestAnimationFrame(draw);
         var new_width = Math.min(Math.max(Math.floor(window.innerWidth), 640), 1920);
-        if (new_width != width && window.location.search == "?s=auto") {
+        if (new_width != width && (window.location.search == "?s=auto" || window.location.search == "?s=autosmall")) {
             width = new_width;
-            height = Math.floor(width * 3 / 16) * 2;
+            height = window.location.search == "?s=autosmall" ? Math.floor(width * 3 / 32) * 2 : Math.floor(width * 3 / 16) * 2;
             var expected_h = Math.floor((window.innerHeight - document.getElementById("my-audio-div").clientHeight
                                     - document.getElementById("my-input-div").clientHeight
                                     - document.getElementById("my-p").clientHeight)/2) * 2;
@@ -186,15 +186,15 @@ window.addEventListener("load", function(event) {
         w = 1600;
     else if (qstring == "?s=1920x720")
         w = 1920;
-    else if (qstring == "?s=auto")
+    else if (qstring == "?s=auto" || qstring == "?s=autosmall")
         w = Math.min(Math.max(Math.floor(window.innerWidth), 640), 1920);
     else if (document.getElementById("my-audio"))
         window.location.replace("index.html?s=auto");
     else
         window.location.replace("capture.html?s=auto");
 
-    h = Math.floor(w * 3 / 16) * 2;
-    if (qstring == "?s=auto") {
+    h = qstring == "?s=autosmall" ? Math.floor(w * 3 / 32) * 2 : Math.floor(w * 3 / 16) * 2;
+    if (qstring == "?s=auto" || qstring == "?s=autosmall") {
         var expected_h = Math.floor((window.innerHeight - document.getElementById("my-audio-div").clientHeight
                                     - document.getElementById("my-input-div").clientHeight
                                     - document.getElementById("my-p").clientHeight)/2) * 2;
