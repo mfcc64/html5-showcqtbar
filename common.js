@@ -17,7 +17,7 @@ function start_showcqtbar(width, height, bar_h, stream) {
         audio_ctx.createMediaStreamSource(stream) :
         audio_ctx.createMediaElementSource(document.getElementById("my-audio"));
 
-    var canvas = document.getElementById("my-canvas").getContext("2d", {alpha:false});
+    var canvas = document.getElementById("my-canvas").getContext("2d", {alpha:true});
     var bar_knob = document.getElementById("my-bar-knob");
     var brightness_knob = document.getElementById("my-brightness-knob");
     var showcqtbar = new ShowCQTBar(audio_ctx.sampleRate, width, bar_h,
