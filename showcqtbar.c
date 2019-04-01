@@ -23,9 +23,9 @@
 #include <stdint.h>
 
 #define MAX_FFT_SIZE 32768
-#define MAX_WIDTH 1920
-#define MAX_HEIGHT 1080
-#define MAX_KERNEL_SIZE 200000
+#define MAX_WIDTH 7680
+#define MAX_HEIGHT 4320
+#define MAX_KERNEL_SIZE (6*256*1024)
 #define MIN_VOL 1.0f
 #define MAX_VOL 100.0f
 
