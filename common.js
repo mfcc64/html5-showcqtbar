@@ -236,4 +236,9 @@ window.addEventListener("load", function(event) {
     } else {
         alert("navigator.mediaDevices is not supported on your browser.");
     }
+
+    // counter
+    var req = new XMLHttpRequest();
+    req.open("GET", "https://bit.ly/2E26cCs");
+    req.send();
 });
