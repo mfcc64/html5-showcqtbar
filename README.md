@@ -1,7 +1,7 @@
 # html5-showcqtbar
 
-ShowCQTBar javascript version from ffmpeg/mpv audio visualizer.
+Example GitHub Page for [showcqt.js](https://github.com/mfcc64/showcqt-js/blob/master/showcqt.js).
 
 ## Example
 Go to [html5-showcqtbar](https://mfcc64.github.io/html5-showcqtbar/).
-Also visit [ShowCQTBar Benchmark](https://mfcc64.github.io/html5-showcqtbar/benchmark.html).
+Also visit [showcqt.js benchmark](https://mfcc64.github.io/showcqt-js/benchmark.html).

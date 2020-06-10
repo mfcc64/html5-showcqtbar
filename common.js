@@ -1,5 +1,5 @@
 
-function start_showcqtbar(width, height, bar_h, stream) {
+async function start_showcqtbar(width, height, bar_h, stream) {
     var audio_ctx = new(window.AudioContext || window.webkitAudioContext)();
     function resume_audio_ctx() {
         if (audio_ctx.state === "suspended") {
@@ -20,9 +20,10 @@ function start_showcqtbar(width, height, bar_h, stream) {
     var canvas = document.getElementById("my-canvas").getContext("2d", {alpha:true});
     var bar_knob = document.getElementById("my-bar-knob");
     var brightness_knob = document.getElementById("my-brightness-knob");
-    var showcqtbar = new ShowCQTBar(audio_ctx.sampleRate, width, bar_h,
-                                    Math.pow(10, bar_knob.value/20),
-                                    Math.pow(10, brightness_knob.value/20), 1);
+    var showcqtbar = await ShowCQT.instantiate();
+    showcqtbar.init(audio_ctx.sampleRate, width, bar_h,
+                    Math.pow(10, bar_knob.value/20),
+                    Math.pow(10, brightness_knob.value/20), 1);
     var bass_knob = document.getElementById("my-bass-knob");
     analyser_l.fftSize = showcqtbar.fft_size;
     analyser_r.fftSize = showcqtbar.fft_size;
@@ -37,10 +38,7 @@ function start_showcqtbar(width, height, bar_h, stream) {
     splitter.connect(analyser_r, 1);
     if (!stream)
         panner.connect(audio_ctx.destination);
-    var audio_data_l = showcqtbar.get_input_array(0);
-    var audio_data_r = showcqtbar.get_input_array(1);
-    var line_buffer_tmp = null, line_buffer = null;
-    var line_buffer = showcqtbar.get_output_array();
+    var line_buffer_tmp = null;
     var img_buffer = canvas.createImageData(width, height);
     var render_time = 0.0;
     var calc_time = 0.0;
@@ -75,25 +73,23 @@ function start_showcqtbar(width, height, bar_h, stream) {
             var axis_h = Math.round(width / 80) * 2;
             bar_h = ((height - axis_h)/2)|0;
             resize_canvas(width, height, bar_h, axis_h);
-            showcqtbar = new ShowCQTBar(audio_ctx.sampleRate, width, bar_h,
-                                        Math.pow(10, bar_knob.value/20),
-                                        Math.pow(10, brightness_knob.value/20), 1);
-            audio_data_l = showcqtbar.get_input_array(0);
-            audio_data_r = showcqtbar.get_input_array(1);
-            line_buffer = showcqtbar.get_output_array();
+            showcqtbar.init(audio_ctx.sampleRate, width, bar_h,
+                            Math.pow(10, bar_knob.value/20),
+                            Math.pow(10, brightness_knob.value/20), 1);
             img_buffer = canvas.createImageData(width, height);
         }
         var start = performance.now();
-        analyser_l.getFloatTimeDomainData(audio_data_l);
-        analyser_r.getFloatTimeDomainData(audio_data_r);
+        analyser_l.getFloatTimeDomainData(showcqtbar.inputs[0]);
+        analyser_r.getFloatTimeDomainData(showcqtbar.inputs[1]);
         showcqtbar.calc();
         var middle = performance.now();
         var waterfall = !waterfall_off.checked;
         for (var y = 0; y < height/2; y++) {
-            showcqtbar.render_line(y);
-            img_buffer.data.set(line_buffer, 4*width*y);
+            if (y <= bar_h)
+                showcqtbar.render_line_opaque(y);
+            img_buffer.data.set(showcqtbar.output, 4*width*y);
             if (!waterfall || y >= bar_h)
-                img_buffer.data.set(line_buffer, 4*width*(height-1-y));
+                img_buffer.data.set(showcqtbar.output, 4*width*(height-1-y));
         }
 
         if (waterfall) {
