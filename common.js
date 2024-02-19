@@ -1,5 +1,6 @@
 
 async function start_showcqtbar(width, height, bar_h, stream) {
+    var {ShowCQT} = await import("https://cdn.jsdelivr.net/npm/showcqt@1/showcqt.mjs");
     var audio_ctx = new(window.AudioContext || window.webkitAudioContext)();
     function resume_audio_ctx() {
         if (audio_ctx.state === "suspended") {
